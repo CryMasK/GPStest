@@ -16,7 +16,11 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
@@ -48,7 +52,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private long MIN_TIME_BW_UPDATES = 3000;
     private float MIN_DISTANCE_CHANGE_FOR_UPDATES = 1;
     private int userState = 0;
-    private String Url = "http://140.136.150.80/project_D/ajax/posttest.php";
+    private boolean isLogin = false;
+    private String login_uID;
+    private final String Url = "http://140.136.150.80/project_D/ajax/posttest.php";
 
     static final Integer LOCATION = 0x1;
     static final Integer CALL = 0x2;
@@ -84,6 +90,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             }
         });
+
+        if(!(isLogin)){ // 假如還未登入的話
+            Intent Login = new Intent();
+            Login.setClass(MainActivity.this, LoginActivity.class);
+            startActivityForResult(Login, 1); // 觸發換頁
+            onPause();
+        }
+        //processLoginData(); // 以防萬一MainActivity被殺掉的話
     }
 
     private void askForPermission(String permission, Integer requestCode) {
@@ -101,10 +115,43 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+    /* // For singleTask Activity
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        setIntent(intent); // must store the new intent unless getIntent() will return the old one
+        Toast.makeText(this, "5", Toast.LENGTH_LONG).show();
+        processLoginData();
+
+    }*/
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        /* 接收登入畫面傳回來的資料 */
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK){
+                isLogin = true;
+                login_uID = data.getStringExtra("account");
+
+                EditText ETuID = (EditText) findViewById(R.id.ID_input);
+                ETuID.setText(login_uID); // set uID input = account
+                ETuID.setEnabled(false); // lock uID input
+
+                TextView TVstate = (TextView) findViewById(R.id.loadingState);
+                TVstate.setText("已登入");
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         // TODO Auto-generated method stub
         super.onResume();
+
+        //processLoginData();
+
         if (getService) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (MainActivity.this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -259,6 +306,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             data.add(new BasicNameValuePair("longitude", String.valueOf(longitude)));
             data.add(new BasicNameValuePair("latitude", String.valueOf(latitude)));
             data.add(new BasicNameValuePair("state", String.valueOf(userState)));
+            if (isLogin){ // 有登入才傳這欄位 (可優化項目)
+                data.add(new BasicNameValuePair("is_member", "1")); // true
+            }
             //httpPostData(uID, String.valueOf(longitude), String.valueOf(latitude));
             //Toast.makeText(this, userState, Toast.LENGTH_LONG).show(); // test refresh
 
@@ -320,15 +370,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             getService = false; // 定位服務flipflop
             //ETuID.setFocusableInTouchMode(true);
-            ETuID.setEnabled(true);
+            if(!(isLogin)){
+                ETuID.setEnabled(true);
+            }
             sendBtn.setClickable(true);
             TVstate.setText("停止發送座標");
         }
     }
 
     protected void sendBtn_onClick(View v) {
-        getService = true;    //確認開啟定位服務
-
         EditText ETuID = (EditText) findViewById(R.id.ID_input);
         Button sendBtn = (Button) findViewById(R.id.sendBtn);
         String uID = ETuID.getText().toString().trim();
@@ -342,6 +392,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         //ETuID.setInputType(InputType.TYPE_NULL);
                         sendBtn.setClickable(false); // 取消sendBtn的點擊能力
 
+                        getService = true;    //確認開啟定位服務
                         locationServiceInitial();
                     }
                     else {
@@ -360,6 +411,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     ETuID.setEnabled(false); // lock uID input
                     sendBtn.setClickable(false); // 取消sendBtn的點擊能力
 
+                    getService = true; // 確認開啟定位服務
                     locationServiceInitial();
                 }
             }
@@ -425,4 +477,108 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private boolean isValid(String s) {
         return validPattern.matcher(s).matches();
     }
+
+    protected void logoutBtn_onClick(View v){
+        if (isLogin){
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this); // Instantiate an AlertDialog.Builder with its constructor
+            builder.setMessage(R.string.logout_dialog_message)
+                    .setTitle(R.string.logout_dialog_title)
+                    .setPositiveButton(R.string.logout_dialog_OK, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            if (getService) { // 假如正在傳送的話
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    if (MainActivity.this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        locationManager.removeUpdates(MainActivity.this); // 停止更新
+                                    }
+                                    else {
+                                        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                                            //This is called if user has denied the permission before
+                                            //In this case I am just asking the permission again
+                                            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION);
+                                        } else {
+                                            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION);
+                                        }
+                                        //askForPermission(Manifest.permission.ACCESS_FINE_LOCATION,LOCATION);
+                                    }
+                                }
+                                else {
+                                    //askForPermission(Manifest.permission.ACCESS_FINE_LOCATION,LOCATION);
+                                    locationManager.removeUpdates(MainActivity.this); // 停止更新
+                                }
+                                getService = false; // 定位服務flipflop
+
+                                Button sendBtn = (Button) findViewById(R.id.sendBtn);
+                                sendBtn.setClickable(true);
+                            }
+
+                            isLogin = false;
+                            login_uID = "";
+
+                            EditText ETuID = (EditText) findViewById(R.id.ID_input);
+                            ETuID.setText(""); // clean uID input
+                            ETuID.setEnabled(true); // unlock uID input
+
+                            TextView TVstate = (TextView) findViewById(R.id.loadingState);
+                            TVstate.setText("未登入");
+                        }
+                    })
+                    .setNegativeButton(R.string.logout_dialog_cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User cancelled the dialog
+                        }
+                    });
+            AlertDialog DLlogout = builder.create();
+            DLlogout.show();
+
+
+        }
+    }
+
+    protected void reLoginBtn_onClick(View v){
+        Intent Login = new Intent();
+        Login.setClass(MainActivity.this, LoginActivity.class);
+        startActivityForResult(Login, 1); // 觸發換頁
+        onPause();
+    }
+
+    protected void processLoginData(){
+        Toast.makeText(this, "2", Toast.LENGTH_LONG).show();
+        if (!(isLogin)){ // 目前沒登入的話
+            Bundle extras = getIntent().getExtras();
+            Toast.makeText(this, "3", Toast.LENGTH_LONG).show();
+            if (extras != null){
+                Toast.makeText(this, "4", Toast.LENGTH_LONG).show();
+                login_uID = extras.getString("account");
+
+                EditText ETuID = (EditText) findViewById(R.id.ID_input);
+                ETuID.setText(login_uID); // set uID input = account
+                ETuID.setEnabled(false); // lock uID input
+
+                TextView TVstate = (TextView) findViewById(R.id.loadingState);
+                TVstate.setText("已登入");
+            }
+        }
+    }
+
+    /*public static class LogOutDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the Builder class for convenient dialog construction
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(R.string.logout_dialog_message)
+                    .setTitle(R.string.logout_dialog_title)
+                    .setPositiveButton(R.string.logout_dialog_OK, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // FIRE ZE MISSILES!
+                        }
+                    })
+                    .setNegativeButton(R.string.logout_dialog_cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User cancelled the dialog
+                        }
+                    });
+            // Create the AlertDialog object and return it
+            return builder.create();
+        }
+    }*/
 }
