@@ -3,6 +3,7 @@ package com.fatguy.fju.gpstest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
@@ -10,6 +11,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
@@ -54,7 +56,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private int userState = 0;
     private boolean isLogin = false;
     private String login_uID;
-    private final String Url = "http://140.136.150.80/project_D/ajax/posttest.php";
+    protected ConcurrentLinkedQueue messages = new ConcurrentLinkedQueue();
+    private final String locateUrl = "http://140.136.150.80/project_D/ajax/posttest.php";
+    private final String receiveMsgUrl = "http://140.136.150.80/project_D/ajax/ReceiveMessage.php";
+    private final String markSeenUrl = "http://140.136.150.80/project_D/ajax/MarkSeen.php";
 
     static final Integer LOCATION = 0x1;
     static final Integer CALL = 0x2;
@@ -84,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     //Toast.makeText(getApplicationContext(), "忙碌", Toast.LENGTH_LONG).show();
                 }
                 else {
-                    // Switch if OFF
+                    // Switch is OFF
                     userState = 0;
                     //Toast.makeText(getApplicationContext(), "正常", Toast.LENGTH_LONG).show();
                 }
@@ -306,8 +311,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             data.add(new BasicNameValuePair("longitude", String.valueOf(longitude)));
             data.add(new BasicNameValuePair("latitude", String.valueOf(latitude)));
             data.add(new BasicNameValuePair("state", String.valueOf(userState)));
-            if (isLogin){ // 有登入才傳這欄位 (可優化項目)
+            if (isLogin){ // 有登入才做這些 (可優化項目)
                 data.add(new BasicNameValuePair("is_member", "1")); // true
+
+                receiveMsg recAuthTask = new receiveMsg(uID); // 找尋有沒有新訊息
+                recAuthTask.execute((Void) null);
             }
             //httpPostData(uID, String.valueOf(longitude), String.valueOf(latitude));
             //Toast.makeText(this, userState, Toast.LENGTH_LONG).show(); // test refresh
@@ -435,7 +443,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         @Override
         protected String doInBackground(List<NameValuePair>... params) {
             /* 建立HTTP Post連線 */
-            HttpPost httpRequest = new HttpPost(Url);
+            HttpPost httpRequest = new HttpPost(locateUrl);
 
             try {
             /* 發出HTTP request */
@@ -556,6 +564,138 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                 TextView TVstate = (TextView) findViewById(R.id.loadingState);
                 TVstate.setText("已登入");
+            }
+        }
+    }
+
+    private class receiveMsg extends AsyncTask<Void, Integer, Boolean> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
+        String mMessage;
+        private final String mAccount;
+
+        receiveMsg(String account){
+            mAccount = account;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void...params) {
+            /* 建立HTTP Post連線 */
+            HttpPost httpRequest = new HttpPost(receiveMsgUrl);
+
+            List<NameValuePair> data = new ArrayList<NameValuePair>();
+            data.add(new BasicNameValuePair("account", mAccount));
+
+            try {
+            /* 發出HTTP request */
+                httpRequest.setEntity(new UrlEncodedFormEntity(data, HTTP.UTF_8));
+
+            /* 取得HTTP response */
+                HttpResponse httpResponse = new DefaultHttpClient().execute(httpRequest);
+
+            /* 若狀態碼為200 ok */
+                if (httpResponse.getStatusLine().getStatusCode() == 200) {
+                /* 取出回應字串 */
+                    String strResult = EntityUtils.toString(httpResponse.getEntity());
+
+                    if(strResult != null){
+                        mMessage = strResult;
+
+                        return true;
+                    }
+                }
+            } catch (ClientProtocolException e) {
+                //Toast.makeText(this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return false;
+            } catch (IOException e) {
+                //Toast.makeText(this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return false;
+            } catch (Exception e) {
+                //Toast.makeText(this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return false;
+            }
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) { // result 為doInBackground() 的回傳值
+            if (result == true){ // true代表有收到新訊息
+                markSeen marAuthTask = new markSeen(mAccount, mMessage); // 在資料庫裡將這筆訊息標示為已讀/已收取
+                marAuthTask.execute((Void) null);
+            }
+        }
+    }
+
+    private class markSeen extends AsyncTask<Void, Integer, String> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
+        private final String mAccount;
+        private final String mMessage;
+
+        markSeen(String account, String message){
+            mAccount = account;
+            mMessage = message;
+        }
+
+        @Override
+        protected String doInBackground(Void...params) {
+            /* 建立HTTP Post連線 */
+            HttpPost httpRequest = new HttpPost(markSeenUrl);
+
+            List<NameValuePair> data = new ArrayList<NameValuePair>();
+            data.add(new BasicNameValuePair("account", mAccount));
+
+            try {
+            /* 發出HTTP request */
+                httpRequest.setEntity(new UrlEncodedFormEntity(data, HTTP.UTF_8));
+
+            /* 取得HTTP response */
+                HttpResponse httpResponse = new DefaultHttpClient().execute(httpRequest);
+
+            /* 若狀態碼為200 ok */
+                if (httpResponse.getStatusLine().getStatusCode() == 200) {
+                /* 取出回應字串 */
+                    String strResult = EntityUtils.toString(httpResponse.getEntity());
+
+                    if(strResult.equals("1")){ // (int)true
+
+                        return "OK";
+                    }
+                }
+            } catch (ClientProtocolException e) {
+                //Toast.makeText(this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return e.getMessage().toString();
+            } catch (IOException e) {
+                //Toast.makeText(this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return e.getMessage().toString();
+            } catch (Exception e) {
+                //Toast.makeText(this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return e.getMessage().toString();
+            }
+            return "Failed";
+        }
+
+        @Override
+        protected void onPostExecute(String result) { // result 為doInBackground() 的回傳值
+            if (result.equals("OK")){
+                messages.offer(mMessage);
+            }
+            else{
+                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+            }
+
+            if ( !(messages.isEmpty()) ){
+                TextView msgNotify = (TextView) findViewById(R.id.message_badge);
+
+                msgNotify.setText(String.valueOf(messages.size()));
+                msgNotify.setVisibility(View.VISIBLE);
+            }
+            else{
+                TextView msgNotify = (TextView) findViewById(R.id.message_badge);
+
+                msgNotify.setVisibility(View.GONE);
             }
         }
     }

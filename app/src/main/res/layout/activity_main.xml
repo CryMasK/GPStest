@@ -12,27 +12,26 @@
         android:id="@+id/ID_input"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:hint="請輸入個人ID"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
+        android:hint="請輸入個人ID" />
 
     <TextView
         android:id="@+id/longitude_text"
         android:layout_width="175dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/ID_input"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
-        android:text="@string/longitude_label"
-        />
+        android:text="@string/longitude_label" />
 
     <TextView
         android:id="@+id/longitude"
         android:layout_width="175dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/longitude_text"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="3dp"
         android:text="@string/latlon_default"
         android:textColor="#000000" />
@@ -41,8 +40,8 @@
         android:id="@+id/latitude_text"
         android:layout_width="175dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/longitude"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp"
         android:text="@string/latitude_label" />
 
@@ -50,86 +49,121 @@
         android:id="@+id/latitude"
         android:layout_width="175dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/latitude_text"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="3dp"
         android:text="@string/latlon_default"
         android:textColor="#000000" />
 
     <Button
+        android:id="@+id/sendBtn"
         android:layout_width="150dp"
         android:layout_height="80dp"
-        android:text="@string/send_button"
-        android:id="@+id/sendBtn"
-        android:layout_below="@+id/latitude"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
+        android:layout_below="@+id/latitude"
         android:layout_marginLeft="32dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="47dp"
-        android:onClick="sendBtn_onClick" />
+        android:onClick="sendBtn_onClick"
+        android:text="@string/send_button" />
 
     <Button
+        android:id="@+id/stopBtn"
         android:layout_width="150dp"
         android:layout_height="80dp"
-        android:text="@string/stop_button"
-        android:id="@+id/stopBtn"
-        android:layout_alignTop="@+id/sendBtn"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginRight="32dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/sendBtn"
         android:layout_marginEnd="32dp"
-        android:onClick="stopBtn_onClick" />
+        android:layout_marginRight="32dp"
+        android:onClick="stopBtn_onClick"
+        android:text="@string/stop_button" />
 
     <TextView
+        android:id="@+id/loadingState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/stateDefault"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="34dp"
-        android:id="@+id/loadingState" />
+        android:text="@string/stateDefault" />
 
     <Switch
+        android:id="@+id/stateSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="23dp"
-        android:id="@+id/stateSwitch"
         android:layout_below="@+id/sendBtn"
         android:layout_centerHorizontal="true"
-        android:textOn="@string/stateBusy"
-        android:textOff="@string/stateEasy"
+        android:layout_marginTop="23dp"
+        android:showText="true"
         android:text="@string/userState"
-        android:textSize="16sp"
-        android:showText="true"/>
+        android:textOff="@string/stateEasy"
+        android:textOn="@string/stateBusy"
+        android:textSize="16sp" />
 
     <ImageButton
+        android:id="@+id/logout_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:scaleType="center"
-        android:id="@+id/logout_button"
-        android:src="@drawable/logout_button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="17dp"
+        android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:onClick="logoutBtn_onClick"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="17dp"
-        android:layout_marginRight="10dp"
-        android:background="?android:attr/selectableItemBackground" />
+        android:scaleType="center"
+        android:src="@drawable/logout_button" />
 
     <ImageButton
+        android:id="@+id/relogin_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:scaleType="center"
-        android:id="@+id/relogin_button"
-        android:src="@drawable/relogin_button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/logout_button"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:onClick="reLoginBtn_onClick"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/logout_button"
+        android:scaleType="center"
+        android:src="@drawable/relogin_button" />
+
+    <ImageButton
+        android:id="@+id/message_button"
+        android:layout_width="48dp"
+        android:layout_height="32dp"
+        android:layout_alignTop="@+id/ID_input"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="5dp"
-        android:layout_marginRight="10dp"
-        android:background="?android:attr/selectableItemBackground" />
+        android:layout_toEndOf="@+id/ID_input"
+        android:layout_toRightOf="@+id/ID_input"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:scaleType="center"
+        android:src="@drawable/message_button" />
 
-
+    <TextView
+        android:id="@+id/message_badge"
+        android:layout_width="20dip"
+        android:layout_height="20dip"
+        android:layout_alignEnd="@+id/message_button"
+        android:layout_alignRight="@+id/message_button"
+        android:layout_alignTop="@+id/message_button"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginEnd="-5dp"
+        android:layout_marginRight="-5dp"
+        android:layout_marginTop="-5dp"
+        android:background="@drawable/message_badge_background"
+        android:clickable="false"
+        android:gravity="top|center_horizontal"
+        android:text=""
+        android:textColor="@color/white"
+        android:visibility="gone" />
 </RelativeLayout>
