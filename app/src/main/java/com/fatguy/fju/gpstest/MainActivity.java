@@ -137,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK){
+                cleanMessages(); // clean up messages of previous login
+
                 isLogin = true;
                 login_uID = data.getStringExtra("account");
 
@@ -491,7 +493,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this); // Instantiate an AlertDialog.Builder with its constructor
             builder.setMessage(R.string.logout_dialog_message)
                     .setTitle(R.string.logout_dialog_title)
-                    .setPositiveButton(R.string.logout_dialog_OK, new DialogInterface.OnClickListener() {
+                    .setPositiveButton(R.string.dialog_OK, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             if (getService) { // 假如正在傳送的話
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -521,6 +523,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                             isLogin = false;
                             login_uID = "";
+                            cleanMessages(); // clean up messages
 
                             EditText ETuID = (EditText) findViewById(R.id.ID_input);
                             ETuID.setText(""); // clean uID input
@@ -530,15 +533,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             TVstate.setText("未登入");
                         }
                     })
-                    .setNegativeButton(R.string.logout_dialog_cancel, new DialogInterface.OnClickListener() {
+                    .setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             // User cancelled the dialog
                         }
                     });
             AlertDialog DLlogout = builder.create();
             DLlogout.show();
-
-
         }
     }
 
@@ -547,6 +548,49 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Login.setClass(MainActivity.this, LoginActivity.class);
         startActivityForResult(Login, 1); // 觸發換頁
         onPause();
+    }
+
+    protected void messageBtn_onClick(View v){
+        /* Read messages */
+        if (messages.isEmpty() || !(isLogin)){
+            return;
+        }
+        else{
+            // Use the Builder class for convenient dialog construction
+            final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage(messages.peek().toString()) // get head, but don't remove
+                    .setTitle(R.string.message_dialog_title)
+                    .setPositiveButton(R.string.dialog_OK, null); // 先設點擊事件為null，後面再Override成自定義的(覆寫掉點擊按鈕就會關閉dialog的功能)
+            final AlertDialog DLmsg = builder.create();
+
+            DLmsg.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface dialog) {
+                    Button positiveButton = DLmsg.getButton(AlertDialog.BUTTON_POSITIVE);
+                    positiveButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            messages.poll(); // pop out the head
+
+                            if(!(messages.isEmpty())){
+                                TextView msgNotify = (TextView) findViewById(R.id.message_badge);
+                                msgNotify.setText(String.valueOf(messages.size()));
+                                msgNotify.setVisibility(View.VISIBLE);
+
+                                DLmsg.setMessage(messages.peek().toString()); // set next message
+                            }
+                            else {
+                                TextView msgNotify = (TextView) findViewById(R.id.message_badge);
+                                msgNotify.setVisibility(View.GONE);
+
+                                DLmsg.dismiss(); // close dialog
+                            }
+                        }
+                    });
+                }
+            });
+            DLmsg.show(); // show dialog
+        }
     }
 
     protected void processLoginData(){
@@ -596,7 +640,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 /* 取出回應字串 */
                     String strResult = EntityUtils.toString(httpResponse.getEntity());
 
-                    if(strResult != null){
+                    if( !(strResult.isEmpty()) ){
                         mMessage = strResult;
 
                         return true;
@@ -680,6 +724,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         @Override
         protected void onPostExecute(String result) { // result 為doInBackground() 的回傳值
             if (result.equals("OK")){
+                //Toast.makeText(getApplicationContext(), mMessage, Toast.LENGTH_SHORT).show();
                 messages.offer(mMessage);
             }
             else{
@@ -692,12 +737,47 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 msgNotify.setText(String.valueOf(messages.size()));
                 msgNotify.setVisibility(View.VISIBLE);
             }
-            else{
+            else{ // 這個應該是叫不到
                 TextView msgNotify = (TextView) findViewById(R.id.message_badge);
 
                 msgNotify.setVisibility(View.GONE);
             }
         }
+    }
+
+    /*public static class ReadMessagesDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the Builder class for convenient dialog construction
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(messages.poll().toString())
+                    .setTitle(R.string.message_dialog_title)
+                    .setPositiveButton(R.string.dialog_OK, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            while(!(messages.isEmpty())){
+                                builder.setMessage(messages.poll().toString());
+                            }
+                        }
+                    })
+                    .setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User cancelled the dialog
+                        }
+                    });
+            // Create the AlertDialog object and return it
+            return builder.create();
+        }
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+        }
+    }*/
+
+    protected void cleanMessages(){
+        while(messages.poll() != null);
+
+        TextView msgNotify = (TextView) findViewById(R.id.message_badge);
+        msgNotify.setVisibility(View.GONE);
     }
 
     /*public static class LogOutDialogFragment extends DialogFragment {

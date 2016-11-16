@@ -146,6 +146,7 @@
         android:layout_toRightOf="@+id/ID_input"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
+        android:onClick="messageBtn_onClick"
         android:scaleType="center"
         android:src="@drawable/message_button" />
 
@@ -166,4 +167,5 @@
         android:text=""
         android:textColor="@color/white"
         android:visibility="gone" />
+
 </RelativeLayout>
