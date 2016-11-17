@@ -316,17 +316,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if (isLogin){ // 有登入才做這些 (可優化項目)
                 data.add(new BasicNameValuePair("is_member", "1")); // true
 
-                receiveMsg recAuthTask = new receiveMsg(uID); // 找尋有沒有新訊息
+                ReceiveMsg recAuthTask = new ReceiveMsg(uID); // 找尋有沒有新訊息
                 recAuthTask.execute((Void) null);
             }
-            //httpPostData(uID, String.valueOf(longitude), String.valueOf(latitude));
+            //HttpPostData(uID, String.valueOf(longitude), String.valueOf(latitude));
             //Toast.makeText(this, userState, Toast.LENGTH_LONG).show(); // test refresh
 
-            httpPostData post = new httpPostData();
+            HttpPostData post = new HttpPostData();
             post.execute(data);
 
 
-            /*String result = httpPostData(uID, String.valueOf(longitude), String.valueOf(latitude));
+            /*String result = HttpPostData(uID, String.valueOf(longitude), String.valueOf(latitude));
                             // 印出網路回傳的文字
                             if (result != null) {
                                 Toast.makeText(this, result, Toast.LENGTH_LONG).show();
@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    protected void stopBtn_onClick(View v) {
+    public void stopBtn_onClick(View v) {
         EditText ETuID = (EditText) findViewById(R.id.ID_input);
         Button sendBtn = (Button) findViewById(R.id.sendBtn);
         TextView TVstate = (TextView) findViewById(R.id.loadingState);
@@ -388,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    protected void sendBtn_onClick(View v) {
+    public void sendBtn_onClick(View v) {
         EditText ETuID = (EditText) findViewById(R.id.ID_input);
         Button sendBtn = (Button) findViewById(R.id.sendBtn);
         String uID = ETuID.getText().toString().trim();
@@ -434,7 +434,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    private class httpPostData extends AsyncTask<List<NameValuePair>, Integer, String> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
+    private class HttpPostData extends AsyncTask<List<NameValuePair>, Integer, String> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
 
         @Override
         protected void onPreExecute() {
@@ -488,7 +488,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return validPattern.matcher(s).matches();
     }
 
-    protected void logoutBtn_onClick(View v){
+    public void logoutBtn_onClick(View v){
         if (isLogin){
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this); // Instantiate an AlertDialog.Builder with its constructor
             builder.setMessage(R.string.logout_dialog_message)
@@ -543,14 +543,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    protected void reLoginBtn_onClick(View v){
+    public void reLoginBtn_onClick(View v){
         Intent Login = new Intent();
         Login.setClass(MainActivity.this, LoginActivity.class);
         startActivityForResult(Login, 1); // 觸發換頁
         onPause();
     }
 
-    protected void messageBtn_onClick(View v){
+    public void messageBtn_onClick(View v){
         /* Read messages */
         if (messages.isEmpty() || !(isLogin)){
             return;
@@ -612,11 +612,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    private class receiveMsg extends AsyncTask<Void, Integer, Boolean> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
+    private class ReceiveMsg extends AsyncTask<Void, Integer, Boolean> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
         String mMessage;
         private final String mAccount;
 
-        receiveMsg(String account){
+        ReceiveMsg(String account){
             mAccount = account;
         }
 
@@ -665,17 +665,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         @Override
         protected void onPostExecute(Boolean result) { // result 為doInBackground() 的回傳值
             if (result == true){ // true代表有收到新訊息
-                markSeen marAuthTask = new markSeen(mAccount, mMessage); // 在資料庫裡將這筆訊息標示為已讀/已收取
+                MarkSeen marAuthTask = new MarkSeen(mAccount, mMessage); // 在資料庫裡將這筆訊息標示為已讀/已收取
                 marAuthTask.execute((Void) null);
             }
         }
     }
 
-    private class markSeen extends AsyncTask<Void, Integer, String> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
+    private class MarkSeen extends AsyncTask<Void, Integer, String> { // <傳入 doInBackground() 的參數型別, 傳入onProgressUpdate() 的參數型別, doInBackground() 的回傳值型別>
         private final String mAccount;
         private final String mMessage;
 
-        markSeen(String account, String message){
+        MarkSeen(String account, String message){
             mAccount = account;
             mMessage = message;
         }

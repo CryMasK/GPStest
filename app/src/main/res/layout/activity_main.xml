@@ -15,7 +15,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="100dp"
-        android:hint="請輸入個人ID" />
+        android:hint="@string/uID_input_message" />
 
     <TextView
         android:id="@+id/longitude_text"
@@ -116,7 +116,8 @@
         android:clickable="true"
         android:onClick="logoutBtn_onClick"
         android:scaleType="center"
-        android:src="@drawable/logout_button" />
+        android:src="@drawable/logout_button"
+        android:contentDescription="@string/logout"/>
 
     <ImageButton
         android:id="@+id/relogin_button"
@@ -132,7 +133,8 @@
         android:clickable="true"
         android:onClick="reLoginBtn_onClick"
         android:scaleType="center"
-        android:src="@drawable/relogin_button" />
+        android:src="@drawable/relogin_button"
+        android:contentDescription="@string/relogin" />
 
     <ImageButton
         android:id="@+id/message_button"
@@ -148,7 +150,8 @@
         android:clickable="true"
         android:onClick="messageBtn_onClick"
         android:scaleType="center"
-        android:src="@drawable/message_button" />
+        android:src="@drawable/message_button"
+        android:contentDescription="@string/message" />
 
     <TextView
         android:id="@+id/message_badge"
