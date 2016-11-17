@@ -51,7 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         mLoginFormView = findViewById(R.id.login_scrollForm);
     }
 
-    protected void loginBtn_onClick(View v) {
+    public void loginBtn_onClick(View v) {
         EditText ETaccount = (EditText) findViewById(R.id.input_account);
         EditText ETpassword = (EditText) findViewById(R.id.input_password);
         TextView TVloginStatus = (TextView) findViewById(R.id.login_status);
@@ -77,7 +77,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    protected void cancelBtn_onClick(View v) {
+    public void cancelBtn_onClick(View v) {
         this.finish();
     }
 

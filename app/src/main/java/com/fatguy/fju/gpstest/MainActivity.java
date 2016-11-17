@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    protected void stopBtn_onClick(View v) {
+    public void stopBtn_onClick(View v) {
         EditText ETuID = (EditText) findViewById(R.id.ID_input);
         Button sendBtn = (Button) findViewById(R.id.sendBtn);
         TextView TVstate = (TextView) findViewById(R.id.loadingState);
@@ -388,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    protected void sendBtn_onClick(View v) {
+    public void sendBtn_onClick(View v) {
         EditText ETuID = (EditText) findViewById(R.id.ID_input);
         Button sendBtn = (Button) findViewById(R.id.sendBtn);
         String uID = ETuID.getText().toString().trim();
@@ -488,7 +488,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return validPattern.matcher(s).matches();
     }
 
-    protected void logoutBtn_onClick(View v){
+    public void logoutBtn_onClick(View v){
         if (isLogin){
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this); // Instantiate an AlertDialog.Builder with its constructor
             builder.setMessage(R.string.logout_dialog_message)
@@ -543,14 +543,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    protected void reLoginBtn_onClick(View v){
+    public void reLoginBtn_onClick(View v){
         Intent Login = new Intent();
         Login.setClass(MainActivity.this, LoginActivity.class);
         startActivityForResult(Login, 1); // 觸發換頁
         onPause();
     }
 
-    protected void messageBtn_onClick(View v){
+    public void messageBtn_onClick(View v){
         /* Read messages */
         if (messages.isEmpty() || !(isLogin)){
             return;
